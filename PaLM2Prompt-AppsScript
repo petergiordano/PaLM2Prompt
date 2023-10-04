@@ -1,0 +1,53 @@
+function PALM2prompt(prompt, cell_reference) {
+    // This Apps Script for Google Sheets takes two arguments: Prompt and CellReference
+
+    // Build your Apps Script via Google Docs > Extensions > Apps Script, https://script.google.com/home/projects
+    
+    // Get your API Key from the Google MakerSuite web page: https://makersuite.google.com/app/home
+    
+    var apiKey = "API_KEY";
+    
+    // Choose the model 
+    var apiUrl = "https://generativelanguage.googleapis.com/v1beta2/models/text-bison-001:generateText";
+
+    var url = apiUrl + "?key=" + apiKey;
+    var headers = {
+        "Content-Type": "application/json"
+    };
+
+    var requestBody = {
+        "prompt": {"text": prompt}
+    }
+
+    if (cell_reference) {
+        // Use the cell_reference value directly as the prompt_question
+        var prompt_question = cell_reference;
+
+        // Add the prompt question to the prompt.
+        requestBody.prompt.text += " " + prompt_question;
+    };
+
+    // Check the value of the cell_reference variable and the length of the requestBody.prompt.text variable.
+    if (!cell_reference || requestBody.prompt.length === 0) {
+        throw new Error("The prompt text is not specified.");
+    };
+
+    var options = {
+        "method": "POST",
+        "headers": headers,
+        "payload": JSON.stringify(requestBody)
+    };
+
+    var response = UrlFetchApp.fetch(url, options);
+
+    // Check the response status code.
+    if (response.getResponseCode() !== 200) {
+        throw new Error("Request failed: " + response.getResponseCode());
+    };
+
+    // Parse the response JSON.
+    var data = JSON.parse(response.getContentText());
+
+    // Return the output of the PaLM API.
+    return data.candidates[0].output;
+}
